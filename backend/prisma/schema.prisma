@@ -1,0 +1,142 @@
+Database Schema (backend/prisma/schema.prisma):
+prismagenerator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cart         Cart?
+  payments     Payment[]
+  feedback     Feedback[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  category    String
+  venue       String
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  price       Float
+  totalTickets Int
+  soldTickets  Int        @default(0)
+  isSoldOut   Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  imageUrl    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  cartItems    CartItem[]
+  payments     Payment[]
+  feedback     Feedback[]
+
+  @@map("events")
+}
+
+model Cart {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id       String @id @default(cuid())
+  cartId   String
+  eventId  String
+  quantity Int    @default(1)
+
+  cart  Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, eventId])
+  @@map("cart_items")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  eventId       String
+  amount        Float
+  currency      String        @default("USD")
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String
+  stripeIntentId String?      @unique
+  ticketQuantity Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("payments")
+}
+
+model Feedback {
+  id       String @id @default(cuid())
+  userId   String
+  eventId  String
+  rating   Int    @default(5) // 1-5 stars
+  comment  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
+  @@map("feedback")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
