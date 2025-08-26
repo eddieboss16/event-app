@@ -1,5 +1,4 @@
-Database Schema (backend/prisma/schema.prisma):
-prismagenerator client {
+generator client {
   provider = "prisma-client-js"
 }
 
