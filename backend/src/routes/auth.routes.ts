@@ -1,5 +1,15 @@
 import { Router } from "express";
 import { body } from "express-validator";
+import { 
+    getProfile, 
+    login, 
+    logout, 
+    refresh, 
+    register 
+} from "../controllers/auth.controller";
+import { authenticate } from "../middleware/auth.middleware";
+import { validateRequest } from '../middleware/'
+
 
 const router = Router();
 
@@ -23,4 +33,10 @@ const loginValidation = [
 ];
 
 // Routes
-router.post('/register', registerValidation, )
+router.post('/register', registerValidation, validateRequest, register);
+router.post('/login', loginValidation, validateRequest, login);
+router.post('/refresh', refresh);
+router.post('/logout', authenticate, logout);
+router.get('/me', authenticate, getProfile);
+
+export default router;
