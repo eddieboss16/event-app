@@ -8,7 +8,7 @@ import {
     register 
 } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
-import { validateRequest } from '../middleware/'
+import { validateRequest } from '../middleware/validation.middleware'
 
 
 const router = Router();
