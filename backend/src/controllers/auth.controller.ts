@@ -27,13 +27,13 @@ export const register = async (req:Request, res: Response) => {
 
         //Hash password
         const saltRounds = 12;
-        const hashPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create user
         const user = await prisma.user.create({
             data: {
                 email,
-                password: hashPassword,
+                password: hashedPassword,
                 firstName,
                 lastName,
                 role: role as 'USER' | 'ADMIN',
