@@ -1,47 +1,74 @@
-import jwt from 'jsonwebtoken';
-import { prisma } from "./database";
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { prisma } from './database';
 
 export interface JWTPayload {
-    userId: string;
-    email: string;
-    role: 'USER' | 'ADMIN';
+  userId: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
 }
 
 export const generateTokens = (payload: JWTPayload) => {
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
-        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    });
+  const jwtSecret = process.env.JWT_SECRET;
+  const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
 
-    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    });
+  if (!jwtSecret || !jwtRefreshSecret) {
+    throw new Error('JWT secrets are not configured');
+  }
 
-    return { accessToken, refreshToken };
+  const accessTokenOptions: SignOptions = {
+    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+  };
+
+  const refreshTokenOptions: SignOptions = {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  };
+
+  const accessToken = jwt.sign(payload, jwtSecret, accessTokenOptions);
+  const refreshToken = jwt.sign(payload, jwtRefreshSecret, refreshTokenOptions);
+
+  return { accessToken, refreshToken };
 };
 
 export const verifyAccessToken = (token: string): JWTPayload => {
-    return jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
+  const jwtSecret = process.env.JWT_SECRET;
+  
+  if (!jwtSecret) {
+    throw new Error('JWT secret is not configured');
+  }
+
+  return jwt.verify(token, jwtSecret) as JWTPayload;
 };
 
 export const verifyRefreshToken = (token: string): JWTPayload => {
-    return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as JWTPayload;
+  const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+  
+  if (!jwtRefreshSecret) {
+    throw new Error('JWT refresh secret is not configured');
+  }
+
+  return jwt.verify(token, jwtRefreshSecret) as JWTPayload;
 };
 
-export const saveRefreshToken = async (userId: string, token: string) => {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); //7 days
+export const saveRefreshToken = async (userId: string, token: string): Promise<void> => {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
-    await prisma.refreshToken.create({
-        data: {
-            token,
-            userId,
-            expiresAt,
-        },
-    });
+  await prisma.refreshToken.create({
+    data: {
+      token,
+      userId,
+      expiresAt,
+    },
+  });
 };
 
-export const removeRefreshToken = async (token: string) => {
+export const removeRefreshToken = async (token: string): Promise<void> => {
+  try {
     await prisma.refreshToken.delete({
-        where: { token },
+      where: { token },
     });
+  } catch (error) {
+    // Token might not exist, which is okay
+    console.log('Refresh token not found or already deleted');
+  }
 };

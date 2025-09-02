@@ -2,14 +2,14 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../config/database";
 import {
-    generateTokens, 
+    generateTokens,
     removeRefreshToken, 
     saveRefreshToken,
     verifyRefreshToken,
 } from "../config/jwt";
 import { AuthRequest } from "../middleware/auth.middleware";
 
-export const register = async (req:Request, res: Response) => {
+export const register = async (req:Request, res: Response): Promise<void> => {
     try {
         const { email, password, firstName, lastName, role = 'USER' } = req.body;
 
@@ -19,10 +19,11 @@ export const register = async (req:Request, res: Response) => {
         });
 
         if (existingUser) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: 'User already exists with this email',
             });
+            return;
         }
 
         //Hash password
@@ -44,7 +45,7 @@ export const register = async (req:Request, res: Response) => {
                 firstName: true,
                 lastName: true,
                 role: true,
-                createAt: true,
+                createdAt: true,
             },
         });
 
@@ -69,7 +70,7 @@ export const register = async (req:Request, res: Response) => {
     }
 };
 
-export const login = async (req: Request, res: Response)=> {
+export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
 
@@ -79,19 +80,21 @@ export const login = async (req: Request, res: Response)=> {
         });
 
         if (!user || !user.isActive) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: 'Invalid credentials',
             });
+            return;
         }
 
         // Verify password
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message:'Invalid credentials',
-            }); 
+            });
+            return;
         }
 
         //Generate tokens
@@ -139,15 +142,16 @@ export const login = async (req: Request, res: Response)=> {
     }
 };
 
-export const refresh = async (req: Request, res: Response) => {
+export const refresh = async (req: Request, res: Response): Promise<void> => {
     try {
         const refreshToken = req.cookies?.refreshToken;
 
         if (!refreshToken) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: 'Refresh token required',
             });
+            return;
         }
 
         // Verify refresh token
@@ -159,10 +163,11 @@ export const refresh = async (req: Request, res: Response) => {
         });
 
         if(!tokenRecord) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: 'Invalid refresh token',
             });
+            return;
         }
 
         //Generate new tokens
@@ -225,7 +230,7 @@ export const logout = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const getProfile = async (req: AuthRequest, res: Response) => {
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.user!.userId },
@@ -241,10 +246,11 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
         });
 
         if (!user) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 message: 'User not found',
             });
+            return;
         }
 
         res.json({

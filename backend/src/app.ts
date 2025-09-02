@@ -6,6 +6,8 @@ import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 
+// Routes
+import authRoutes from './routes/auth.routes';
 
 // Create Express app
 const app = express();
