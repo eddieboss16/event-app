@@ -42,7 +42,7 @@ class ApiService {
                     try {
                         await this.refreshToken();
                         return this.api(originalRequest);
-                    } catch (refreshToken) {
+                    } catch (refreshError) {
                         // Refresh failed, redirect to login
                         window.location.href = '/login';
                         return Promise.reject(refreshError);

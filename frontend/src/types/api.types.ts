@@ -1,7 +1,7 @@
 export interface ApiResponse<T = any> {
     success: boolean;
     message: string;
-    data?: T;
+    data: T;
     error?: Array<{
         field?: string;
         message: string;
