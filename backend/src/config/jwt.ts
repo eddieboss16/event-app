@@ -1,4 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import { prisma } from './database';
 
 export interface JWTPayload {
@@ -16,11 +17,11 @@ export const generateTokens = (payload: JWTPayload) => {
   }
 
   const accessTokenOptions: SignOptions = {
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+    expiresIn: (process.env.JWT_EXPIRES_IN ?? '15m') as StringValue,
   };
 
   const refreshTokenOptions: SignOptions = {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '7d') as StringValue,
   };
 
   const accessToken = jwt.sign(payload, jwtSecret, accessTokenOptions);

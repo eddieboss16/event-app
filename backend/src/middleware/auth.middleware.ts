@@ -5,54 +5,62 @@ export interface AuthRequest extends Request {
     user?: JWTPayload;
 }
 
-export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
     try {
         const authenticate = req.headers.authorization;
         const token = req.cookies?.accessToken || authenticate?.split(' ')[1];
 
         if (!token) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: 'Access token required'
             });
+            return;
         }
 
         const payload = verifyAccessToken(token);
         req.user = payload;
         next();
+        return;
     } catch (error) {
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
             message: 'Invalid or expired token'
         });
+        return;
     }
 };
 
-export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
-            messange: 'Authenticaton required'
+            message: 'Authentication required'
         });
+        return;
     }
 
     if (req.user.role !== 'ADMIN') {
-        return res.status(403).json({
+        res.status(403).json({
             success: false,
             message: 'Admin access required'
         });
+        return;
     }
 
     next();
+    return;
 };
 
-export const requireUser = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireUser = (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
             message: 'User access only'
         });
+        return;
     }
 
     next();
+    return;
 };

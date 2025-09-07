@@ -25,7 +25,7 @@ const limiter = rateLimit({
     },
 });
 
-app.use('/api/', limiter);
+app.use(limiter);
 
 // CORS configuration
 app.use(cors({
@@ -58,8 +58,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler (use no path to avoid path-to-regexp wildcard issues)
+app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Route not found',
