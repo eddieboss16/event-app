@@ -8,6 +8,10 @@ import morgan from "morgan";
 
 // Routes
 import authRoutes from './routes/auth.routes';
+import eventRoutes from './routes/events.route';
+import cartRoutes from './routes/cart.routes';
+import paymentRoutes from './routes/payment.routes';
+import feedbackRoutes from './routes/feedback.routes';
 
 // Create Express app
 const app = express();
@@ -25,15 +29,18 @@ const limiter = rateLimit({
     },
 });
 
-app.use(limiter);
+app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
     origin:process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'stripe-signature'],
 }));
+
+// Special handling for Stripe webhook (raw body)
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -57,6 +64,10 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // 404 handler (use no path to avoid path-to-regexp wildcard issues)
 app.use((req, res) => {
