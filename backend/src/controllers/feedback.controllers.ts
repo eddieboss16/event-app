@@ -20,7 +20,7 @@ export const submitFeedback = async (req: AuthRequest, res: Response): Promise<v
         if (existingFeedback) {
             res.status(400).json({
                 success: false,
-                message: 'You have already submitted for this event',
+                message: 'You have already submitted feedback for this event',
             });
             return;
         }
@@ -37,7 +37,7 @@ export const submitFeedback = async (req: AuthRequest, res: Response): Promise<v
         if (!hasTicket) {
             res.status(403).json({
                 success: false,
-                message: 'You can only provide feedback for events you have attended',
+                message: 'You can only provide feedback for events you have purchased tickets for',
             });
             return;
         }

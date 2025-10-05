@@ -28,8 +28,8 @@ class EmailService {
             port: parseInt(process.env.SMTP_PORT || '587'),
             secure: false, // true for 465, false for other ports
             auth: {
-                user: process.env.STMP_USER,
-                pass: process.env.STMP_PASS,
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
             },
         });
     }
@@ -44,7 +44,7 @@ class EmailService {
                 text: options.text,
             });
 
-            console.log('Email sent successfully to ${options.to}');
+            console.log(`Email sent successfully to ${options.to}`);
         } catch (error) {
             console.error('Error sending email:', error);
             throw new Error('Failed to send email');
@@ -52,7 +52,7 @@ class EmailService {
     }
 
     async sendTicketConfirmation(data: TicketEmailData): Promise<void> {
-        const subject = 'Ticket Confirmation - ${data.eventTitle}';
+        const subject = `Ticket Confirmation - ${data.eventTitle}`;
 
         const html = `
       <!DOCTYPE html>

@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   password  String
   firstName String
@@ -23,12 +23,10 @@ model User {
   payments     Payment[]
   feedback     Feedback[]
   refreshTokens RefreshToken[]
-
-  @@map("users")
 }
 
 model Event {
-  id          String      @id @default(cuid())
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
   category    String
@@ -49,26 +47,22 @@ model Event {
   cartItems    CartItem[]
   payments     Payment[]
   feedback     Feedback[]
-
-  @@map("events")
 }
 
 model Cart {
-  id     String @id @default(cuid())
-  userId String @unique
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-
-  @@map("carts")
 }
 
 model CartItem {
-  id       String @id @default(cuid())
-  cartId   String
-  eventId  String
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  cartId   String @db.ObjectId
+  eventId  String @db.ObjectId
   quantity Int    @default(1)
 
   cart  Cart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
@@ -78,13 +72,12 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@unique([cartId, eventId])
-  @@map("cart_items")
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  userId        String
-  eventId       String
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String        @db.ObjectId
+  eventId       String        @db.ObjectId
   amount        Float
   currency      String        @default("USD")
   status        PaymentStatus @default(PENDING)
@@ -96,14 +89,12 @@ model Payment {
 
   user  User  @relation(fields: [userId], references: [id])
   event Event @relation(fields: [eventId], references: [id])
-
-  @@map("payments")
 }
 
 model Feedback {
-  id       String @id @default(cuid())
-  userId   String
-  eventId  String
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  eventId  String @db.ObjectId
   rating   Int    @default(5) // 1-5 stars
   comment  String?
   createdAt DateTime @default(now())
@@ -113,19 +104,16 @@ model Feedback {
   event Event @relation(fields: [eventId], references: [id])
 
   @@unique([userId, eventId])
-  @@map("feedback")
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   token     String   @unique
-  userId    String
+  userId    String   @db.ObjectId
   expiresAt DateTime
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("refresh_tokens")
 }
 
 enum UserRole {

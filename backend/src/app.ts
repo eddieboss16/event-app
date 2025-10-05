@@ -69,8 +69,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// 404 handler (use no path to avoid path-to-regexp wildcard issues)
-app.use((req, res) => {
+// 404 handler
+app.use('*',(req, res) => {
     res.status(404).json({
         success: false,
         message: 'Route not found',
